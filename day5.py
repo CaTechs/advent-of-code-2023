@@ -26,7 +26,6 @@ def day5():
                 nextCat.append(s + dif)
                 currentSet.discard(s)
                 
-    print(nextCat)
     return min(nextCat)
 
 # 3014768818 too high
@@ -40,7 +39,6 @@ def day5t():
     for i in range(0, len(seed), 2):
         a,b = seed[i], seed[i+1]
         currentCat.append((a, a + b - 1))
-    print(currentCat)
     nextCat = []
     for l in content:
         if l == "":
@@ -52,7 +50,6 @@ def day5t():
             continue
         elif not l[0].isnumeric():
             #Description, on skip
-            print(l)
             continue
         startNext, startCurrent, size = [int(n) for n in l.split(" ")]
         shift = startNext - startCurrent
@@ -64,6 +61,7 @@ def day5t():
             nextCat.extend(nex)
         currentCat = newCurrentCat
     if len(nextCat) > 0: #On a pas pris le temps de décaler avant de finir, donc je le fais
+        nextCat.extend(currentCat)
         currentCat = nextCat
     return min([s[0] for s in currentCat])
    
@@ -100,4 +98,5 @@ def isPointInBetween(x, a, b):
 
 if __name__ == '__main__':
     # Execute when the module is not initialized from an import statement.
+    print(day5())
     print(day5t())
