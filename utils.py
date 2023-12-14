@@ -20,5 +20,8 @@ def prettyPrint(t):
 	for l in t:
 		print("".join(l))
 
+def rLen(l):
+	return range(len(l))
+
 def __main__():
 	pass
