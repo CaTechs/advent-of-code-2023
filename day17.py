@@ -80,6 +80,7 @@ def day17Second():
         key = pos.toKey()
 
         if pos.x == tX and pos.y == tY and pos.s >= 4:
+            # Relou, il faut bien faire 4 avant de pouvoir s'arrêter à la fin
             return dis
 
         if not key in seen:
