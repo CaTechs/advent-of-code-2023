@@ -57,10 +57,10 @@ def fill(dug):
 	return seen
 
 def day18Second():
-	content = loadFileByLine(18, "t")
+	content = loadFileByLine(18, "")
 	pos = (0, 0)
 	maxX = 0
-	maxY = 0
+	minX = 0
 	cols = []
 	starts = dict()
 	ends = dict()
@@ -73,11 +73,11 @@ def day18Second():
 		d = listDir[d]
 		if d == DOWN or d == UP:
 			if d == DOWN:
-				nC = (pos[0], pos[0] + dis, pos[1])
+				nC = (pos[0], pos[0] + dis, pos[1], True)
 			else:
-				nC = (pos[0] - dis, pos[0], pos[1])
+				nC = (pos[0] - dis, pos[0], pos[1], False)
 			cols.append(nC)
-			a, b, c = nC
+			a, b, c, t = nC
 			if a not in starts:
 				starts[a] = []
 			starts[a].append(nC)
@@ -87,26 +87,51 @@ def day18Second():
 			
 		pos = (pos[0] + dis*d[0], pos[1] + dis*d[1])
 		maxX = max(pos[0], maxX)
-		maxY = max(pos[1], maxY)
+		minX = min(pos[0], minX)
 	activated = set()
 	tot = 0
-	for x in range(maxX + 1):
+	for x in range(minX, maxX + 1):
+
+		listSE = []
 		if x in starts:
-			activated.update(starts[x])
+			listSE.extend(starts[x])
+		if x in ends:
+			listSE.extend(ends[x])
+			for e in ends[x]:
+				activated.remove(e)
+		listSE.sort(key=getCol)
+		adds = []
+		for k in range(0, len(listSE) - 1, 2):
+			u, s, c, t = listSE[k]
+			u2, s2, c2, t2 = listSE[k + 1]
+			adds.append((u, s, c, c2, t))
+			if t != t2:
+				adds.append(adds[-1])
+			tot += c2 - c + 1
+
+		
 
 		loc = list(activated)
+		loc.extend(adds)
 		loc.sort(key = getCol)
 		for k in range(0, len(loc) - 1, 2):
 			un, deux = loc[k], loc[k + 1]
-			tot += deux[2] - un[2] + 1 
+			if un == deux:
+				continue
+			if len(un) == 5:
+				cUn = un[3] + 1
+			else:
+				cUn = un[2]
+			cDeux = deux[2]
+			if len(deux) == 5:
+				cDeux = cDeux - 1
+			tot += cDeux - cUn + 1 
 
 
-
-
-		if x in ends:
-			for e in ends[x]:
-				activated.remove(e)
+		if x in starts:
+			activated.update(starts[x])
 	return tot
+
 
 
 
@@ -114,5 +139,5 @@ def getCol(c):
 	return c[2]
 
 
-
-print(day18Second())
+res = day18Second()
+print(res, res < 133125706867966)
