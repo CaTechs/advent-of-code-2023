@@ -64,6 +64,7 @@ def day18Second():
 	cols = []
 	starts = dict()
 	ends = dict()
+	setPos = set()
 	for l in content:
 		d, dis, col = l.split(" ")
 		d = int(col[7])
@@ -101,35 +102,54 @@ def day18Second():
 				activated.remove(e)
 		listSE.sort(key=getCol)
 		adds = []
+		change = len(listSE) > 0
 		for k in range(0, len(listSE) - 1, 2):
 			u, s, c, t = listSE[k]
 			u2, s2, c2, t2 = listSE[k + 1]
 			adds.append((u, s, c, c2, t))
 			if t != t2:
+				# Si il sont de type différent (l'un UP et l'autre DOWN)
+				# On l'ajoute deux fois, parce que au final chaque extrémité de cette limite
+				# Et encore soit à l'extérieur, soit à l'intérieur
+				# Donc on veut garder la parité
 				adds.append(adds[-1])
+			# On compte le tronçon commun ici, vu qu'il est forcemment dedans
 			tot += c2 - c + 1
 
-		
+		if not change and totLigne > 0:
+			# La ligne n'a pas changé les colonnes actives, et la précédente non plus
+			# On a pas besoin de recalculer
+			tot += totLigne
+			continue
 
 		loc = list(activated)
 		loc.extend(adds)
 		loc.sort(key = getCol)
+		totLigne = 0
 		for k in range(0, len(loc) - 1, 2):
+			# L'intérieur, c'est d'une colonne paire à une colonne impaire
 			un, deux = loc[k], loc[k + 1]
 			if un == deux:
+				# On est sur deux fois le même changement, on les a déjà compté, on peut les ignores
 				continue
 			if len(un) == 5:
+				# C'est un changement, donc faut prendre le coté droit du changement
+				#Plus un parce qu'on a déjà compté le tronçon commun avant, donc on compte à partir d'un plus loin
 				cUn = un[3] + 1
 			else:
 				cUn = un[2]
 			cDeux = deux[2]
 			if len(deux) == 5:
+				# C'est un changement, on prend le coté gauche du changement
+				# Moins un, pour la même raison qu'avant, donc on recule d'un
 				cDeux = cDeux - 1
-			tot += cDeux - cUn + 1 
-
+			totLigne += cDeux - cUn + 1 
+		tot += totLigne
 
 		if x in starts:
 			activated.update(starts[x])
+		if change:
+			totLigne = 0
 	return tot
 
 
@@ -140,4 +160,4 @@ def getCol(c):
 
 
 res = day18Second()
-print(res, res < 133125706867966)
+print(res, res == 133125706867777)
