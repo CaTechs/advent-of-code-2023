@@ -13,6 +13,33 @@ dictDir = {
 }
 listDir = [RIGHT, DOWN, LEFT, UP]
 
+class Pos():
+
+
+	def __init__(self, a, b, col, isDown):
+		self.a = a
+		self.b = b
+		self.col = col
+		self.isDown = isDown
+		self.isChange = False
+
+	def makeChanged(self, col2):
+		# -1 +1 parce qu'on aura déjà compté le tronçon de col à col2, 
+		# et on sait pas si on va recompter les bords
+		pos2 = Pos(self.a, self.b, self.col - 1, self.isDown)
+		pos2.col2 = col2 + 1
+		pos2.isChange = True
+		return pos2
+
+	def toKey(self):
+		return (self.a, self.b, self.col)
+
+	def __eq__(self, other):
+		return self.toKey == other.toKey
+
+	def __hash__(self):
+		return hash(self.toKey)
+
 def day18():
 	content = loadFileByLine(18, "")
 	pos = (0, 0)
@@ -74,17 +101,16 @@ def day18Second():
 		d = listDir[d]
 		if d == DOWN or d == UP:
 			if d == DOWN:
-				nC = (pos[0], pos[0] + dis, pos[1], True)
+				nC = Pos(pos[0], pos[0] + dis, pos[1], True)
 			else:
-				nC = (pos[0] - dis, pos[0], pos[1], False)
+				nC = Pos(pos[0] - dis, pos[0], pos[1], False)
 			cols.append(nC)
-			a, b, c, t = nC
-			if a not in starts:
-				starts[a] = []
-			starts[a].append(nC)
-			if b not in ends:
-				ends[b] = []
-			ends[b].append(nC)
+			if nC.a not in starts:
+				starts[nC.a] = []
+			starts[nC.a].append(nC)
+			if nC.b not in ends:
+				ends[nC.b] = []
+			ends[nC.b].append(nC)
 			
 		pos = (pos[0] + dis*d[0], pos[1] + dis*d[1])
 		maxX = max(pos[0], maxX)
@@ -92,7 +118,6 @@ def day18Second():
 	activated = set()
 	tot = 0
 	for x in range(minX, maxX + 1):
-
 		listSE = []
 		if x in starts:
 			listSE.extend(starts[x])
@@ -104,17 +129,17 @@ def day18Second():
 		adds = []
 		change = len(listSE) > 0
 		for k in range(0, len(listSE) - 1, 2):
-			u, s, c, t = listSE[k]
-			u2, s2, c2, t2 = listSE[k + 1]
-			adds.append((u, s, c, c2, t))
-			if t != t2:
+			p1 = listSE[k]
+			p2 = listSE[k + 1]
+			adds.append(p1.makeChanged(p2.col))
+			if p1.isDown != p2.isDown:
 				# Si il sont de type différent (l'un UP et l'autre DOWN)
 				# On l'ajoute deux fois, parce que au final chaque extrémité de cette limite
 				# Et encore soit à l'extérieur, soit à l'intérieur
 				# Donc on veut garder la parité
 				adds.append(adds[-1])
 			# On compte le tronçon commun ici, vu qu'il est forcemment dedans
-			tot += c2 - c + 1
+			tot += p2.col - p1.col + 1
 
 		if not change and totLigne > 0:
 			# La ligne n'a pas changé les colonnes actives, et la précédente non plus
@@ -132,17 +157,11 @@ def day18Second():
 			if un == deux:
 				# On est sur deux fois le même changement, on les a déjà compté, on peut les ignores
 				continue
-			if len(un) == 5:
-				# C'est un changement, donc faut prendre le coté droit du changement
-				#Plus un parce qu'on a déjà compté le tronçon commun avant, donc on compte à partir d'un plus loin
-				cUn = un[3] + 1
+			if un.isChange:
+				cUn = un.col2
 			else:
-				cUn = un[2]
-			cDeux = deux[2]
-			if len(deux) == 5:
-				# C'est un changement, on prend le coté gauche du changement
-				# Moins un, pour la même raison qu'avant, donc on recule d'un
-				cDeux = cDeux - 1
+				cUn = un.col
+			cDeux = deux.col
 			totLigne += cDeux - cUn + 1 
 		tot += totLigne
 
@@ -155,8 +174,8 @@ def day18Second():
 
 
 
-def getCol(c):
-	return c[2]
+def getCol(p):
+	return p.col
 
 
 res = day18Second()
