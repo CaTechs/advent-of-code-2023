@@ -1,5 +1,7 @@
 from utils import *
 from queue import Queue
+from math import lcm
+
 
 HIGH = True
 LOW = False
@@ -75,6 +77,16 @@ class Broadcaster:
 
 def day20():
 	content = loadFileByLine(20, "")
+	dictObjects, _ = initObjects(content)
+	nbrLow, nbrHigh = 0, 0
+	for i in range(1000):
+		l, h = cycle(dictObjects)
+		nbrLow += l
+		nbrHigh += h
+	print(nbrLow, nbrHigh)
+	return nbrLow * nbrHigh
+
+def initObjects(content):
 	dictObjects = dict()
 	listCon = []
 	dictInp = dict()
@@ -94,13 +106,7 @@ def day20():
 			dictInp[t].append(o.name)
 	for c in listCon:
 		c.initRegister(dictInp[c.name])
-	nbrLow, nbrHigh = 0, 0
-	for i in range(100000):
-		l, h = cycle(dictObjects)
-		nbrLow += l
-		nbrHigh += h
-	print(nbrLow, nbrHigh)
-	return nbrLow * nbrHigh
+	return (dictObjects, dictInp)
 
 def cycle(dictObjects):
 	nbrLow = 1 #On compte celui du bouton
@@ -109,8 +115,6 @@ def cycle(dictObjects):
 	q.put(("broadcaster", "button", LOW))
 	while not q.empty():
 		tar, origine, sig = q.get()
-		if tar == "rx" and not sig:
-			print("lol")
 		if tar not in dictObjects:
 			continue
 		o = dictObjects[tar]
@@ -128,4 +132,50 @@ def cycle(dictObjects):
 
 	return (nbrLow, nbrHigh)
 
-print(day20())
+def day20Second():
+	content = loadFileByLine(20, "")
+	dictObjects, dictInp = initObjects(content)
+	inpRx = dictInp["rx"].pop()
+	inpEnd = dictInp[inpRx]
+	dictRes = dict()
+	c = 0
+	done = False
+	while not done:
+		c += 1
+		res = cycleSecond(dictObjects, inpEnd)
+		if len(res) > 0:
+			for r in res:
+				if r not in dictRes:
+					dictRes[r] = c
+					if len(dictRes) == len(inpEnd):
+						done = True
+	resLcm = 1
+	for v in dictRes.values():
+		resLcm = lcm(resLcm, v)
+
+	return resLcm
+
+
+def cycleSecond(dictObjects, inpEnd):
+	q = Queue()
+	q.put(("broadcaster", "button", LOW))
+	res = []
+	while not q.empty():
+		tar, origine, sig = q.get()
+		if tar not in dictObjects:
+			continue
+		o = dictObjects[tar]
+		if sig:
+			nextSig = o.high(origine)
+		else:
+			nextSig = o.low(origine)
+		if nextSig is not None:
+			if nextSig:
+				if tar in inpEnd:
+					res.append(tar)
+			for t in o.targets:
+				q.put((t, o.name, nextSig))
+
+	return res
+
+print(day20Second())
