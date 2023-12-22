@@ -23,5 +23,9 @@ def prettyPrint(t):
 def rLen(l):
 	return range(len(l))
 
+def testInGrid(content, x, y):
+    return x >= 0 and x < len(content) and y >= 0 and y < len(content[x])
+
+
 def __main__():
 	pass
